@@ -1,0 +1,7 @@
+.envrc
+venv/
+keys/*
+plain/*
+secure/*
+!.gitkeep
+*.mp4

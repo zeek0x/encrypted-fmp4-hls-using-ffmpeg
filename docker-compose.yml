@@ -1,0 +1,69 @@
+services:
+  cleanup:
+    image: alpine:latest
+    command: sh -c "rm -rf ./keys/* ./plain/* ./secure/*"
+    volumes:
+      - ./keys:/keys:rw
+      - ./plain:/plain:rw
+      - ./secure:/secure:rw
+    restart: "no"
+
+  generate-key:
+    image: alpine:latest
+    command: >
+      sh -c "apk add --no-cache openssl xxd &&
+      mkdir -p /keys &&
+      openssl rand -out /keys/aes128.key 16 &&
+      echo 'http://localhost:8003/keys/aes128.key' > /keys/aes128.keyinfo &&
+      echo '/keys/aes128.key' >> /keys/aes128.keyinfo &&
+      echo "0x$(xxd -p -c 16 /keys/aes128.key)" >> /keys/aes128.keyinfo"
+    volumes:
+      - ./keys:/keys:rw
+    depends_on:
+      cleanup:
+        condition: service_completed_successfully
+    restart: "no"
+
+  ffmpeg:
+    image: jrottenberg/ffmpeg:latest
+    # working directory inside the container is /tmp/workdir
+    volumes:
+      - ${INPUTMP4:-input.mp4}:/tmp/workdir/input.mp4:ro
+      - ./plain:/tmp/workdir/plain:rw
+    command: >
+      -re -stream_loop -1 -i input.mp4
+      -c:v libx264 -profile:v main -g 60 -keyint_min 60 -sc_threshold 0
+      -c:a aac -ar 48000 -b:a 128k
+      -hls_time 2 -hls_segment_type fmp4 -hls_list_size 3 -hls_flags +delete_segments -hls_allow_cache 0
+      -f hls plain/index.m3u8
+    depends_on:
+      cleanup:
+        condition: service_completed_successfully
+
+  hls_encrypt_watcher:
+    build: .
+    volumes:
+      - ./keys:/keys:ro
+      - ./plain:/plain:ro
+      - ./secure:/secure:rw
+    command: >
+      python3 hls_encrypt_watcher.py
+        --src /plain
+        --dst /secure
+        --key-info /keys/aes128.keyinfo
+    depends_on:
+      generate-key:
+        condition: service_completed_successfully
+
+  http_server:
+    image: python:3.14-slim
+    command: python3 srv.py
+    volumes:
+      - ./srv.py:/srv.py:ro
+      - ./keys:/keys:ro
+      - ./secure:/secure:ro
+    ports:
+      - "8003:8003"
+    depends_on:
+      hls_encrypt_watcher:
+        condition: service_started

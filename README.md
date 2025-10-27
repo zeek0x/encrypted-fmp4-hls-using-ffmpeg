@@ -1,13 +1,11 @@
-# Secure FMP4 HLS using FFMPEG
+# Secure fMP4 HLS using FFmpeg
 
 ```mermaid
-%%{init: {"flowchart": {"nodeSpacing": 10, "rankSpacing": 25}} }%%
 flowchart LR
     A("input.mp4") --> B[/"FFmpeg"/]
 
-    subgraph C["ffmpeg/"]
+    subgraph C["plain/"]
       direction LR
-      C0[" "]:::invisible
       C1("index.m3u8"):::file
       C2("init.mp4"):::file
       C3("indexXXX.m4s"):::file
@@ -15,9 +13,8 @@ flowchart LR
 
     B --> C
 
-    subgraph D["keys"]
+    subgraph D["keys/"]
       direction LR
-      D0[" "]:::invisible
       D1("aes.key"):::file
       D2("aes.keyinfo"):::file
     end
@@ -25,9 +22,8 @@ flowchart LR
     C --> E[/"hls_encrypt_watcher"/]
     D --> E
 
-    subgraph F["enc"]
+    subgraph F["secure/"]
       direction LR
-      F0[" "]:::invisible
       F1("index.m3u8"):::file
       F2("init.mp4"):::file
       F3("indexXXX.m4s"):::file
@@ -37,6 +33,13 @@ flowchart LR
     D --> G[\"srv"\]
     F --> G
     G --> H[\"User"\]
-
-classDef invisible fill:none,stroke:none;
 ```
+
+## Run
+
+```
+export INPUTMP4=/path/to/input.mp4
+docker compose up
+```
+
+- Open [hls.js demo](https://hlsjs.video-dev.org/demo/?src=http%3A%2F%2Flocalhost%3A8003%2Findex.m3u8&demoConfig=eyJlbmFibGVTdHJlYW1pbmciOnRydWUsImF1dG9SZWNvdmVyRXJyb3IiOnRydWUsInN0b3BPblN0YWxsIjpmYWxzZSwiZHVtcGZNUDQiOmZhbHNlLCJsZXZlbENhcHBpbmciOi0xLCJsaW1pdE1ldHJpY3MiOi0xfQ==) in Browser
