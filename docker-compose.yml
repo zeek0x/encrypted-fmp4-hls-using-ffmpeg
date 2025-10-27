@@ -1,11 +1,11 @@
 services:
   cleanup:
     image: alpine:latest
-    command: sh -c "rm -rf ./keys/* ./plain/* ./secure/*"
+    command: sh -c "rm -rf ./keys/* ./plain/* ./enc/*"
     volumes:
       - ./keys:/keys:rw
       - ./plain:/plain:rw
-      - ./secure:/secure:rw
+      - ./enc:/enc:rw
     restart: "no"
 
   generate-key:
@@ -45,11 +45,11 @@ services:
     volumes:
       - ./keys:/keys:ro
       - ./plain:/plain:ro
-      - ./secure:/secure:rw
+      - ./enc:/enc:rw
     command: >
       python3 hls_encrypt_watcher.py
         --src /plain
-        --dst /secure
+        --dst /enc
         --key-info /keys/aes128.keyinfo
     depends_on:
       generate-key:
@@ -61,7 +61,7 @@ services:
     volumes:
       - ./srv.py:/srv.py:ro
       - ./keys:/keys:ro
-      - ./secure:/secure:ro
+      - ./enc:/enc:ro
     ports:
       - "8003:8003"
     depends_on:

@@ -1,4 +1,4 @@
-# Secure fMP4 HLS using FFmpeg
+# Encrypted fMP4 HLS using FFmpeg
 
 ```mermaid
 flowchart LR
@@ -22,7 +22,7 @@ flowchart LR
     C --> E[/"hls_encrypt_watcher"/]
     D --> E
 
-    subgraph F["secure/"]
+    subgraph F["enc/"]
       direction LR
       F1("index.m3u8"):::file
       F2("init.mp4"):::file

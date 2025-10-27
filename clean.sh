@@ -1,3 +1,3 @@
 #!/bin/bash
 
-rm -rf keys/* plain/* secure/*
+rm -rf keys/* plain/* enc/*
