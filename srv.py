@@ -46,7 +46,6 @@ class MyRequestHandler(SimpleHTTPRequestHandler):
 
 
 def read_resource(basename):
-    print(basename)
     if os.path.exists("enc/"+basename):
         with open("enc/"+basename, "rb") as f:
             return f.read(), True
